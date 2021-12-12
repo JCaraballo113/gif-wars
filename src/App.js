@@ -5,6 +5,8 @@ import twitterLogo from './assets/twitter-logo.svg';
 import './App.css';
 import idl from './idl.json';
 import kp from './keypair.json';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faHeart } from '@fortawesome/free-solid-svg-icons';
 
 const { SystemProgram, Keypair } = web3;
 const arr = Object.values(kp._keypair.secretKey);
@@ -99,6 +101,26 @@ const App = () => {
         }
     };
 
+    const upvoteGif = async (gifLink) => {
+        try {
+            const provider = getProvider();
+            const program = new Program(idl, programID, provider);
+
+            await program.rpc.updateItem(gifLink, {
+                accounts: {
+                    baseAccount: baseAccount.publicKey,
+                    user: provider.wallet.publicKey,
+                },
+            });
+
+            console.log('GIF successfully upvoted', gifLink);
+
+            await getGifList();
+        } catch (error) {
+            console.log('Error sending GIF:', error);
+        }
+    };
+
     const onInputChange = (event) => {
         const { value } = event.target;
         setInputValue(value);
@@ -157,7 +179,25 @@ const App = () => {
                         {gifList.map((item, index) => (
                             <div className='gif-item' key={index}>
                                 <img src={item.gifLink} />
-                                <p>{item.upvotes}</p>
+                                <div
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                    }}
+                                >
+                                    <FontAwesomeIcon
+                                        color='red'
+                                        style={{
+                                            cursor: 'pointer',
+                                            marginRight: '16px',
+                                        }}
+                                        icon={faHeart}
+                                        onClick={(e) => upvoteGif(item.gifLink)}
+                                    />
+                                    <p>{item.upvotes}</p>
+                                </div>
+
                                 <p style={{ color: 'white' }}>
                                     {item.userAddress.toString()}
                                 </p>
